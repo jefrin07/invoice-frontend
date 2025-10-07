@@ -17,6 +17,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 type Invoice = {
   _id: string;
@@ -90,6 +91,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
   const pageSize = 15;
 
   const fetchInvoices = async (pageNumber = 1, refresh = false) => {
@@ -136,6 +138,7 @@ export default function HomeScreen() {
     useCallback(() => {
       setPage(1);
       fetchInvoices(1, true);
+      setSelectedInvoices(new Set());
     }, [token])
   );
 
@@ -143,6 +146,7 @@ export default function HomeScreen() {
     setRefreshing(true);
     setPage(1);
     fetchInvoices(1, true);
+    setSelectedInvoices(new Set());
   };
 
   const loadMore = () => {
@@ -153,6 +157,54 @@ export default function HomeScreen() {
     }
   };
 
+  // Toggle select/deselect invoice
+  const toggleSelect = (id: string) => {
+    setSelectedInvoices((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
+  };
+
+  // Delete selected invoices
+  const deleteSelectedInvoices = async () => {
+  if (selectedInvoices.size === 0) return;
+
+  try {
+    setLoading(true);
+
+    await api.post(
+      "/api/invoices/delete",
+      { ids: Array.from(selectedInvoices) },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    setInvoices((prev) =>
+      prev.filter((invoice) => !selectedInvoices.has(invoice._id))
+    );
+    setSelectedInvoices(new Set());
+
+    // ✅ Show success toast
+    Toast.show({
+      type: 'success',
+      text1: 'Invoices deleted successfully!',
+      position: 'bottom',
+      visibilityTime: 2000,
+    });
+  } catch (err: any) {
+    console.error("Delete failed:", err.message || err);
+    Toast.show({
+      type: 'error',
+      text1: 'Failed to delete invoices',
+      text2: err.message || '',
+      position: 'bottom',
+      visibilityTime: 2000,
+    });
+  } finally {
+    setLoading(false);
+  }
+};
   // 🧭 Loading skeletons
   if (loading && invoices.length === 0) {
     return (
@@ -207,41 +259,68 @@ export default function HomeScreen() {
               <ActivityIndicator size="small" color={colors.primary} />
             ) : null
           }
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => {
-                console.log("Navigating to:", `/invoicedetail/${item._id}`);
-                router.push(`/invoicedetail/${item._id}`);
-              }}
-            >
-              <View
-                style={[styles.invoiceCard, { backgroundColor: colors.card }]}
+          renderItem={({ item }) => {
+            const isSelected = selectedInvoices.has(item._id);
+            return (
+              <TouchableOpacity
+                onPress={() =>
+                  selectedInvoices.size > 0
+                    ? toggleSelect(item._id)
+                    : router.push(`/invoicedetail/${item._id}`)
+                }
+                onLongPress={() => toggleSelect(item._id)}
+                style={{
+                  borderWidth: isSelected ? 2 : 0,
+                  borderColor: isSelected ? "#2563eb" : "transparent",
+                  borderRadius: 16,
+                  marginBottom: 14,
+                }}
               >
-                <View style={styles.cardHeader}>
-                  <ThemedText
-                    type="defaultSemiBold"
-                    style={[styles.clientName, { color: colors.text }]}
-                  >
-                    {item.client}
-                  </ThemedText>
-                  <ThemedText
-                    style={[styles.invoiceId, { color: colors.border }]}
-                  >
-                    #{item._id.slice(-6).toUpperCase()}
-                  </ThemedText>
+                <View style={[styles.invoiceCard, { backgroundColor: colors.card }]}>
+                  <View style={styles.cardHeader}>
+                    <ThemedText
+                      type="defaultSemiBold"
+                      style={[styles.clientName, { color: colors.text }]}
+                    >
+                      {item.client}
+                    </ThemedText>
+                    <ThemedText style={[styles.invoiceId, { color: colors.border }]}>
+                      #{item._id.slice(-6).toUpperCase()}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.cardBody}>
+                    <ThemedText style={[styles.dateText, { color: colors.text }]}>
+                      📅 {item.date}
+                    </ThemedText>
+                    <ThemedText style={[styles.amountText, { color: "#2563eb" }]}>
+                      ₹{item.amount.toFixed(2)}
+                    </ThemedText>
+                  </View>
                 </View>
-                <View style={styles.cardBody}>
-                  <ThemedText style={[styles.dateText, { color: colors.text }]}>
-                    📅 {item.date}
-                  </ThemedText>
-                  <ThemedText style={[styles.amountText, { color: "#2563eb" }]}>
-                    ₹{item.amount.toFixed(2)}
-                  </ThemedText>
-                </View>
-              </View>
-            </TouchableOpacity>
-          )}
+              </TouchableOpacity>
+            );
+          }}
         />
+
+        {/* Delete button */}
+        {selectedInvoices.size > 0 && (
+          <TouchableOpacity
+            onPress={deleteSelectedInvoices}
+            style={{
+              position: "absolute",
+              bottom: 30,
+              right: 30,
+              backgroundColor: "#dc2626",
+              padding: 16,
+              borderRadius: 50,
+              elevation: 5,
+            }}
+          >
+            <ThemedText style={{ color: "#fff", fontWeight: "700" }}>
+              Delete ({selectedInvoices.size})
+            </ThemedText>
+          </TouchableOpacity>
+        )}
       </ThemedView>
     </SafeAreaView>
   );
