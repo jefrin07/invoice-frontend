@@ -110,6 +110,9 @@ export default function InvoiceDetail() {
 
   // Generate PDF
   const generatePDF = async () => {
+    const gpayNumber = "+91 9633655204";
+    const gpayQR =
+      "https://res.cloudinary.com/dolvugojm/image/upload/v1762317146/fcqv5dxaijz59utlf0wh.jpg";
 
     const htmlContent = `
       <html>
@@ -131,6 +134,27 @@ export default function InvoiceDetail() {
             td { text-align: right; }
             td:first-child, th:first-child { text-align: left; }
             .center { text-align: center; }
+                   .payment-section {
+            margin-top: 50px;
+            text-align: center;
+          }
+          .payment-section h2 {
+            color: #2563eb;
+            font-size: 22px;
+            margin-bottom: 10px;
+          }
+          .payment-section img {
+            width: 180px;
+            height: 180px;
+            margin: 10px auto;
+            display: block;
+          }
+          .payment-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 10px;
+          }
           </style>
         </head>
         <body>
@@ -179,6 +203,13 @@ export default function InvoiceDetail() {
           </table>
 
           <h3>Total: ₹${invoice.totalAmount.toFixed(2)}</h3>
+
+              <div class="payment-section">
+          <h2>Pay via Google Pay</h2>
+          <img src="${gpayQR}" alt="GPay QR" />
+          <div class="payment-number">${gpayNumber}</div>
+          <p style="font-size:14px; color:#666;">Scan to pay or send to the number above.</p>
+        </div>
         </body>
       </html>
     `;
