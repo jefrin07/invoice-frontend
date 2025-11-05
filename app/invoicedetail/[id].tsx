@@ -144,8 +144,8 @@ export default function InvoiceDetail() {
             margin-bottom: 10px;
           }
           .payment-section img {
-            width: 180px;
-            height: 180px;
+            width: 250px;
+            height: 250px;
             margin: 10px auto;
             display: block;
           }
