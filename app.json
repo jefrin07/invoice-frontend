@@ -4,7 +4,7 @@
     "slug": "Invoice",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/10thmaylogo.png",
+    "icon": "./assets/applogo.png",
     "scheme": "invoiceapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
