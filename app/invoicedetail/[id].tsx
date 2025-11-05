@@ -134,27 +134,33 @@ export default function InvoiceDetail() {
             td { text-align: right; }
             td:first-child, th:first-child { text-align: left; }
             .center { text-align: center; }
-                   .payment-section {
-            margin-top: 50px;
+  .page-break {
+            page-break-before: always;
+          }
+
+          /* Payment section */
+          .payment-section {
+            margin-top: 60px;
             text-align: center;
           }
           .payment-section h2 {
             color: #2563eb;
             font-size: 22px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
           }
           .payment-section img {
             width: 250px;
             height: 250px;
-            margin: 10px auto;
+            margin: 15px auto;
             display: block;
           }
           .payment-number {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             color: #333;
             margin-top: 10px;
           }
+
           </style>
         </head>
         <body>
@@ -204,7 +210,8 @@ export default function InvoiceDetail() {
 
           <h3>Total: ₹${invoice.totalAmount.toFixed(2)}</h3>
 
-              <div class="payment-section">
+        <div class="page-break"></div>
+        <div class="payment-section">
           <h2>Pay via Google Pay</h2>
           <img src="${gpayQR}" alt="GPay QR" />
           <div class="payment-number">${gpayNumber}</div>
